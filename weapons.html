@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Weapons</title>
+  <style>
+    body {
+      margin:0;
+      font-family: sans-serif;
+      background: #111;
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 42px;
+      text-shadow: 2px 2px #000;
+    }
+
+    .weapon-select {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 50px;
+      gap: 40px;
+    }
+
+    .weapon-card {
+      background: #222;
+      border: 2px solid #555;
+      border-radius: 12px;
+      width: 180px;
+      padding: 20px;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .weapon-card:hover {
+      transform: scale(1.1);
+      border-color: gold;
+    }
+
+    .weapon-card img {
+      width: 120px;
+      height: 120px;
+      object-fit: contain;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Select Weapon</h1>
+
+<div class="weapon-select">
+  <div class="weapon-card" onclick="selectWeapon('basic_sword')">
+    <img src="assets/weapons/basic_sword.png" alt="Basic Sword">
+    <h3>Basic Sword</h3>
+    <p>Damage: 10<br>Cooldown: 400ms</p>
+  </div>
+
+  <div class="weapon-card" onclick="selectWeapon('laser')">
+    <img src="assets/weapons/laser.png" alt="Laser">
+    <h3>Laser</h3>
+    <p>Damage: 15<br>Cooldown: 700ms</p>
+  </div>
+
+  <!-- voeg hier meer weapons toe -->
+</div>
+
+<script>
+function selectWeapon(weaponName) {
+  // sla weapon keuze op in localStorage
+  localStorage.setItem('selectedWeapon', weaponName);
+
+  // redirect naar index.html of game.html
+  window.location.href = "index.html";
+}
+
+// optioneel: hier kun je weapon stats uitbreiden
+const weapons = {
+  basic_sword: { damage: 10, cooldown: 400 },
+  laser: { damage: 15, cooldown: 700 }
+  // voeg nieuwe weapons hier toe
+};
+</script>
+
+</body>
+</html>
