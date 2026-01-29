@@ -46,30 +46,11 @@
       object-fit: contain;
       margin-bottom: 15px;
     }
-
-    .difficulty {
-      margin-top: 20px;
-      font-size: 20px;
-    }
-
-    select {
-      font-size: 18px;
-      padding: 5px 10px;
-    }
   </style>
 </head>
 <body>
 
 <h1>Bossfight Game</h1>
-
-<div class="difficulty">
-  Difficulty:
-  <select id="difficulty">
-    <option value="easy">Easy</option>
-    <option value="normal" selected>Normal</option>
-    <option value="hard">Hard</option>
-  </select>
-</div>
 
 <div class="boss-select">
   <div class="boss-card" onclick="startBoss('goblin_horde')">
@@ -87,10 +68,7 @@
 
 <script>
 function startBoss(bossName) {
-  // haal geselecteerde difficulty op
-  const diff = document.getElementById('difficulty').value;
-  // sla op in localStorage
-  localStorage.setItem('selectedDifficulty', diff);
+  // sla gekozen boss op (optioneel voor save/score)
   localStorage.setItem('selectedBoss', bossName);
 
   // open boss fight
