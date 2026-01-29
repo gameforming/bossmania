@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bossfight Game - Play</title>
+  <style>
+    body { margin:0; background:#111; color:white; font-family:sans-serif; text-align:center; }
+    canvas { display:block; margin:auto; background:#222; margin-top:20px; }
+    #hud { margin-top:10px; }
+  </style>
+</head>
+<body>
+
+<h1>Bossfight!</h1>
+<canvas id="gameCanvas" width="800" height="450"></canvas>
+<div id="hud"></div>
+
+<script>
+/* =====================
+   LOAD PLAYER CHOICE
+===================== */
+const selectedBoss = localStorage.getItem('selectedBoss');
+const selectedWeapon = localStorage.getItem('selectedWeapon') || 'basic_sword';
+
+const weapons = {
+  basic_sword: { damage: 10, cooldown: 400 },
+  laser: { damage: 15, cooldown: 700 }
+};
+
+const weaponStats = weapons[selectedWeapon];
+
+/* =====================
+   CANVAS SETUP
+===================== */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+/* =====================
+   PLAYER
+===================== */
+const player = {
+  x: 150, y: 300, w: 40, h: 40,
+  lastAttack: 0
+};
+
+/* =====================
+   BOSS (SIMPLE TEMPLATE)
+===================== */
+const boss = {
+  x: 520, y: 260, w: 120, h: 120,
+  head: { x: 550, y: 200, w:70, h:60 },
+  hp: 100,
+  alive: true
+};
+
+/* =====================
+   INPUT
+===================== */
+let keys = {};
+window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keyup', e => keys[e.key] = false);
+
+/* =====================
+   ATTACK
+===================== */
+function attack() {
+  const now = Date.now();
+  if (now - player.lastAttack < weaponStats.cooldown) return;
+  player.lastAttack = now;
+
+  // simpele collision check
+  if (player.x + player.w + 30 > boss.x && boss.alive) {
+    boss.hp -= weaponStats.damage;
+    if (boss.hp <= 0) boss.alive = false;
+  }
+}
+
+/* =====================
+   UPDATE
+===================== */
+function update() {
+  if (keys["a"]) player.x -= 4;
+  if (keys["d"]) player.x += 4;
+  if (keys[" "]) attack();
+}
+
+/* =====================
+   DRAW
+===================== */
+function draw() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // player
+  ctx.fillStyle = 'cyan';
+  ctx.fillRect(player.x, player.y, player.w, player.h);
+
+  // sword attack visual
+  if (Date.now() - player.lastAttack < 100) {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(player.x + player.w, player.y + 10, 30, 10);
+  }
+
+  // boss
+  if (boss.alive) {
+    ctx.fillStyle = 'green';
+    ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
+    ctx.fillStyle = 'darkgreen';
+    ctx.fillRect(boss.head.x, boss.head.y, boss.head.w, boss.head.h);
+
+    // HP bar
+    ctx.fillStyle = 'red';
+    ctx.fillRect(520, 170, boss.hp, 10);
+  } else {
+    ctx.fillStyle = 'white';
+    ctx.fillText('BOSS DEFEATED!', 330, 200);
+    endGame(true);
+  }
+
+  // HUD
+  document.getElementById('hud').innerText = `Weapon: ${selectedWeapon} | Damage: ${weaponStats.damage} | Boss HP: ${boss.hp}`;
+}
+
+/* =====================
+   ENDGAME
+===================== */
+function endGame(victory) {
+  if (victory) {
+    alert("You won!");
+  } else {
+    alert("You lost!");
+  }
+  // terug naar index of shop
+  window.location.href = 'index.html';
+}
+
+/* =====================
+   GAME LOOP
+===================== */
+function loop() {
+  update();
+  draw();
+  if (boss.alive) requestAnimationFrame(loop);
+}
+loop();
+</script>
+
+</body>
+</html>
