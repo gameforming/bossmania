@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Bossfight Game - Play</title>
+  <title>Bossfight - Goblin Horde</title>
   <style>
-    body { margin:0; background:#111; color:white; font-family:sans-serif; text-align:center; }
+    body { margin:0; background:#111; font-family:sans-serif; text-align:center; color:white; }
     canvas { display:block; margin:auto; background:#222; margin-top:20px; }
-    #hud { margin-top:10px; }
+    #hud { margin-top:10px; font-size:18px; }
   </style>
 </head>
 <body>
@@ -18,14 +18,14 @@
 /* =====================
    LOAD PLAYER CHOICE
 ===================== */
-const selectedBoss = localStorage.getItem('selectedBoss');
 const selectedWeapon = localStorage.getItem('selectedWeapon') || 'basic_sword';
-
 const weapons = {
-  basic_sword: { damage: 10, cooldown: 400 },
-  laser: { damage: 15, cooldown: 700 }
+  basic_sword: { damage: 10, cooldown: 400, ability: 'melee' },
+  laser: { damage: 15, cooldown: 700, ability: 'laser' },
+  hammer: { damage: 20, cooldown: 1000, ability: 'hammer' },
+  fire_staff: { damage: 12, cooldown: 600, ability: 'burn' },
+  ice_dagger: { damage: 8, cooldown: 300, ability: 'slow' }
 };
-
 const weaponStats = weapons[selectedWeapon];
 
 /* =====================
@@ -37,40 +37,58 @@ const ctx = canvas.getContext('2d');
 /* =====================
    PLAYER
 ===================== */
-const player = {
-  x: 150, y: 300, w: 40, h: 40,
-  lastAttack: 0
+const player = { x:150, y:300, w:40, h:40, lastAttack:0 };
+
+/* =====================
+   BOSS
+===================== */
+const boss = {
+  x:520, y:260, w:120, h:120,
+  head: { x:550, y:200, w:70, h:60 },
+  hp: 100,
+  alive:true,
+  speed:1,
+  burnCounter:0,
+  slow:false
 };
 
 /* =====================
-   BOSS (SIMPLE TEMPLATE)
+   PROJECTILES (Laser)
 ===================== */
-const boss = {
-  x: 520, y: 260, w: 120, h: 120,
-  head: { x: 550, y: 200, w:70, h:60 },
-  hp: 100,
-  alive: true
-};
+let projectiles = [];
 
 /* =====================
    INPUT
 ===================== */
 let keys = {};
-window.addEventListener('keydown', e => keys[e.key] = true);
-window.addEventListener('keyup', e => keys[e.key] = false);
+window.addEventListener("keydown", e => keys[e.key] = true);
+window.addEventListener("keyup", e => keys[e.key] = false);
 
 /* =====================
    ATTACK
 ===================== */
 function attack() {
   const now = Date.now();
-  if (now - player.lastAttack < weaponStats.cooldown) return;
+  if(now - player.lastAttack < weaponStats.cooldown) return;
   player.lastAttack = now;
 
-  // simpele collision check
-  if (player.x + player.w + 30 > boss.x && boss.alive) {
-    boss.hp -= weaponStats.damage;
-    if (boss.hp <= 0) boss.alive = false;
+  switch(weaponStats.ability) {
+    case 'melee':
+      if(player.x + player.w + 30 > boss.x && boss.alive) boss.hp -= weaponStats.damage;
+      break;
+    case 'laser':
+      projectiles.push({ x:player.x + player.w, y:player.y + 15, w:20, h:5, damage: weaponStats.damage });
+      break;
+    case 'hammer':
+      // area attack, extra reach
+      if(player.x + player.w + 50 > boss.x && boss.alive) boss.hp -= weaponStats.damage;
+      break;
+    case 'burn':
+      if(player.x + player.w + 30 > boss.x && boss.alive) boss.burnCounter = 5; // 5 frames of burn
+      break;
+    case 'slow':
+      if(player.x + player.w + 30 > boss.x && boss.alive) boss.slow = true;
+      break;
   }
 }
 
@@ -78,9 +96,35 @@ function attack() {
    UPDATE
 ===================== */
 function update() {
-  if (keys["a"]) player.x -= 4;
-  if (keys["d"]) player.x += 4;
-  if (keys[" "]) attack();
+  // movement
+  if(keys['a']) player.x -=4;
+  if(keys['d']) player.x +=4;
+  if(keys[' ']) attack();
+
+  // projectiles
+  projectiles.forEach((p, i) => {
+    p.x += 10;
+    if(p.x > boss.x && p.x < boss.x + boss.w && p.y > boss.y && p.y < boss.y + boss.h && boss.alive){
+      boss.hp -= p.damage;
+      projectiles.splice(i,1);
+    } else if(p.x > canvas.width) {
+      projectiles.splice(i,1);
+    }
+  });
+
+  // burn effect
+  if(boss.burnCounter > 0) {
+    boss.hp -= 0.5;
+    boss.burnCounter -= 0.1;
+  }
+
+  // slow effect decay
+  if(boss.slow) boss.speed = 0.5;
+  else boss.speed = 1;
+  if(!keys[' '] && boss.slow) boss.slow = false; // reset after attack
+
+  // boss death
+  if(boss.hp <= 0) boss.alive=false;
 }
 
 /* =====================
@@ -90,55 +134,62 @@ function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   // player
-  ctx.fillStyle = 'cyan';
+  ctx.fillStyle='cyan';
   ctx.fillRect(player.x, player.y, player.w, player.h);
 
-  // sword attack visual
-  if (Date.now() - player.lastAttack < 100) {
-    ctx.fillStyle = 'white';
+  // sword/attack visual
+  if(Date.now() - player.lastAttack < 100){
+    ctx.fillStyle='white';
     ctx.fillRect(player.x + player.w, player.y + 10, 30, 10);
   }
 
+  // projectiles
+  projectiles.forEach(p => {
+    ctx.fillStyle='yellow';
+    ctx.fillRect(p.x,p.y,p.w,p.h);
+  });
+
   // boss
-  if (boss.alive) {
-    ctx.fillStyle = 'green';
+  if(boss.alive){
+    ctx.fillStyle='green';
     ctx.fillRect(boss.x, boss.y, boss.w, boss.h);
-    ctx.fillStyle = 'darkgreen';
+    ctx.fillStyle='darkgreen';
     ctx.fillRect(boss.head.x, boss.head.y, boss.head.w, boss.head.h);
 
     // HP bar
-    ctx.fillStyle = 'red';
-    ctx.fillRect(520, 170, boss.hp, 10);
+    ctx.fillStyle='red';
+    ctx.fillRect(520,170,boss.hp,10);
   } else {
-    ctx.fillStyle = 'white';
-    ctx.fillText('BOSS DEFEATED!', 330, 200);
+    ctx.fillStyle='white';
+    ctx.fillText("BOSS DEFEATED!", 330, 200);
     endGame(true);
   }
 
   // HUD
-  document.getElementById('hud').innerText = `Weapon: ${selectedWeapon} | Damage: ${weaponStats.damage} | Boss HP: ${boss.hp}`;
+  document.getElementById('hud').innerText = `Weapon: ${selectedWeapon} | Damage: ${weaponStats.damage} | Boss HP: ${boss.hp.toFixed(0)}`;
 }
 
 /* =====================
    ENDGAME
 ===================== */
-function endGame(victory) {
-  if (victory) {
+function endGame(victory){
+  if(victory){
     alert("You won!");
-  } else {
-    alert("You lost!");
-  }
-  // terug naar index of shop
-  window.location.href = 'index.html';
+    // eventueel coins toevoegen
+    let coins = parseInt(localStorage.getItem('coins'))||0;
+    coins += 50; // reward
+    localStorage.setItem('coins', coins);
+  } else alert("You lost!");
+  window.location.href='index.html';
 }
 
 /* =====================
    GAME LOOP
 ===================== */
-function loop() {
+function loop(){
   update();
   draw();
-  if (boss.alive) requestAnimationFrame(loop);
+  if(boss.alive) requestAnimationFrame(loop);
 }
 loop();
 </script>
