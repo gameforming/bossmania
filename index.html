@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bossfight Game</title>
+  <style>
+    body {
+      margin:0;
+      font-family: sans-serif;
+      background: linear-gradient(#111, #333);
+      color: white;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 30px;
+      font-size: 48px;
+      text-shadow: 2px 2px #000;
+    }
+
+    .boss-select {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 50px;
+      gap: 40px;
+    }
+
+    .boss-card {
+      background: #222;
+      border: 2px solid #555;
+      border-radius: 12px;
+      width: 180px;
+      padding: 20px;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .boss-card:hover {
+      transform: scale(1.1);
+      border-color: gold;
+    }
+
+    .boss-card img {
+      width: 150px;
+      height: 150px;
+      object-fit: contain;
+      margin-bottom: 15px;
+    }
+
+    .difficulty {
+      margin-top: 20px;
+      font-size: 20px;
+    }
+
+    select {
+      font-size: 18px;
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Bossfight Game</h1>
+
+<div class="difficulty">
+  Difficulty:
+  <select id="difficulty">
+    <option value="easy">Easy</option>
+    <option value="normal" selected>Normal</option>
+    <option value="hard">Hard</option>
+  </select>
+</div>
+
+<div class="boss-select">
+  <div class="boss-card" onclick="startBoss('goblin_horde')">
+    <img src="assets/bosses/goblin_horde/logo.png" alt="Goblin Horde">
+    <h3>Goblin Horde</h3>
+  </div>
+
+  <div class="boss-card" onclick="startBoss('boss2')">
+    <img src="assets/bosses/boss2/logo.png" alt="Boss 2">
+    <h3>Boss 2</h3>
+  </div>
+
+  <!-- voeg hier meer bosses toe -->
+</div>
+
+<script>
+function startBoss(bossName) {
+  // haal geselecteerde difficulty op
+  const diff = document.getElementById('difficulty').value;
+  // sla op in localStorage
+  localStorage.setItem('selectedDifficulty', diff);
+  localStorage.setItem('selectedBoss', bossName);
+
+  // open boss fight
+  window.location.href = `bosses/${bossName}.html`;
+}
+</script>
+
+</body>
+</html>
