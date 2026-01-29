@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Shop</title>
+  <style>
+    body { background:#111; color:white; font-family:sans-serif; text-align:center; }
+    .weapon-card { display:inline-block; background:#222; padding:20px; margin:10px; border-radius:10px; cursor:pointer; transition: transform 0.2s; }
+    .weapon-card:hover { transform:scale(1.1); border:2px solid gold; }
+    img { width:100px; height:100px; }
+  </style>
+</head>
+<body>
+
+<h1>Shop</h1>
+<div id="shop"></div>
+<p>Coins: <span id="coins"></span></p>
+
+<script>
+let coins = parseInt(localStorage.getItem('coins')) || 100;
+document.getElementById('coins').innerText = coins;
+
+const weapons = [
+  { name:'basic_sword', price:0 },
+  { name:'laser', price:50 },
+  { name:'hammer', price:80 }
+];
+
+function buyWeapon(name, price) {
+  if (coins >= price) {
+    coins -= price;
+    localStorage.setItem('coins', coins);
+    let owned = JSON.parse(localStorage.getItem('ownedWeapons') || '[]');
+    if (!owned.includes(name)) owned.push(name);
+    localStorage.setItem('ownedWeapons', JSON.stringify(owned));
+    document.getElementById('coins').innerText = coins;
+    alert(name + ' purchased!');
+  } else {
+    alert("Not enough coins!");
+  }
+}
+
+// render shop
+const shopDiv = document.getElementById('shop');
+weapons.forEach(w => {
+  const card = document.createElement('div');
+  card.className = 'weapon-card';
+  card.innerHTML = `<img src="assets/weapons/${w.name}.png" alt="${w.name}"><h3>${w.name}</h3><p>Price: ${w.price}</p>`;
+  card.onclick = () => buyWeapon(w.name, w.price);
+  shopDiv.appendChild(card);
+});
+</script>
+
+</body>
+</html>
